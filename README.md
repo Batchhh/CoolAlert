@@ -22,15 +22,9 @@ CoolAlert.success("Payment sent", "€42.00 is on its way to Alex.")
   <img src="docs/images/styles.gif" alt="The nine alert styles" width="640">
 </p>
 
-## Gallery
-
-| Success | Destructive | Async + validation | Progress |
-|:---:|:---:|:---:|:---:|
-| <img src="docs/images/success.jpg" width="200"> | <img src="docs/images/warning.jpg" width="200"> | <img src="docs/images/signin-error.jpg" width="200"> | <img src="docs/images/progress.jpg" width="200"> |
-| **Liquid Glass** | **Many buttons** | **SwiftUI content** | **Custom style** |
-| <img src="docs/images/glass.jpg" width="200"> | <img src="docs/images/buttons.jpg" width="200"> | <img src="docs/images/swiftui.jpg" width="200"> | <img src="docs/images/custom.jpg" width="200"> |
-| **Dark mode** | **Side-by-side buttons** | **Fields with icons** | |
-| <img src="docs/images/dark-error.jpg" width="200"> | <img src="docs/images/dark-question.jpg" width="200"> | <img src="docs/images/dark-form.jpg" width="200"> | |
+<p align="center">
+  <img src="docs/images/signin-error.jpg" alt="A sign-in alert with field icons, validation and an inline error" width="300">
+</p>
 
 ## Features
 
