@@ -1,0 +1,55 @@
+name: Bug report
+description: Something doesn't work or looks wrong.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to report this! The smaller the reproduction, the faster it gets fixed.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Code to reproduce
+      description: The smallest snippet that shows the problem.
+      render: swift
+      placeholder: |
+        CoolAlert(.success, "Saved")
+            .button("OK")
+            .show()
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or recording
+      description: Drag images or a screen recording here. Very helpful for visual bugs.
+  - type: input
+    id: version
+    attributes:
+      label: CoolAlert version or commit
+      placeholder: main @ abc1234
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: iOS version, device and Xcode version
+      placeholder: iOS 27.0, iPhone 18 Pro simulator, Xcode 27.0
+    validations:
+      required: true
+  - type: checkboxes
+    id: settings
+    attributes:
+      label: Relevant settings
+      options:
+        - label: Dark mode
+        - label: Large Dynamic Type sizes
+        - label: Reduce Motion
+        - label: VoiceOver
+        - label: Landscape or iPad

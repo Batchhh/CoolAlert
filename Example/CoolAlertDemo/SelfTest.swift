@@ -28,6 +28,7 @@ enum SelfTest {
         await alertIsReleasedAfterClose()
         await textInsetsMatch()
         await leadingIconLayout()
+        await shortAlertIsCompact()
         print("SELFTEST DONE failures=\(failures)")
         exit(failures == 0 ? 0 : 1)
     }
@@ -320,6 +321,29 @@ enum SelfTest {
         let clear = email.clearButtonRect(forBounds: bounds)
         print("ICON editing=\(editing) clear=\(clear)")
         check(editing.minX == text.minX && editing.maxX <= clear.minX, "editing text sits between the icon and the clear button")
+        alert.close()
+        await settle()
+    }
+
+    private static func shortAlertIsCompact() async {
+        let message = "They'll be removed from all your devices, including the ones you haven't used in a while."
+        let alert = CoolAlert(.warning, "Delete 12 photos?", message).button("Delete", role: .destructive).closeButton("Cancel").show()
+        await settle()
+        let labels = topAlertViews.compactMap { $0 as? UILabel }
+        let title = labels.first { $0.text == "Delete 12 photos?" }
+        let body = labels.first { $0.text == message }
+        if let title, let body, let window = alertWindows().last {
+            let titleFrame = title.convert(title.bounds, to: window)
+            let bodyFrame = body.convert(body.bounds, to: window)
+            let gap = bodyFrame.minY - titleFrame.maxY
+            let needed = body.sizeThatFits(CGSize(width: body.bounds.width, height: .greatestFiniteMagnitude)).height
+            let visible = body.superview.map { $0.bounds.height } ?? 0
+            print("COMPACT gap=\(gap) needed=\(needed) visible=\(visible)")
+            check(gap >= 0 && gap <= 10, "no stretched gap between title and message")
+            check(visible + 0.5 >= needed, "multi-line message is fully visible")
+        } else {
+            check(false, "found title and message labels")
+        }
         alert.close()
         await settle()
     }

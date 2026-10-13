@@ -1,0 +1,2 @@
+# Keep generated screenshots and GIFs out of diffs
+docs/images/** binary

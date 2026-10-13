@@ -1,39 +1,84 @@
-# CoolAlert
+<p align="center">
+  <img src="docs/images/banner.png" alt="CoolAlert: beautiful alerts for iOS" width="800">
+</p>
 
-Animated alerts for iOS with a short, chainable API. Covers everything [SCLAlertView-Swift](https://github.com/vikmeup/SCLAlertView-Swift) does, and adds async/await, SwiftUI support, dark mode and Dynamic Type.
+<p align="center">
+  <a href="https://github.com/Batchhh/CoolAlert/actions/workflows/ci.yml"><img src="https://github.com/Batchhh/CoolAlert/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
+  <img src="https://img.shields.io/badge/iOS-17%2B-000000?logo=apple" alt="iOS 17+">
+  <img src="https://img.shields.io/badge/SPM-compatible-34C759" alt="Swift Package Manager">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
+</p>
 
-- Nine styles (`success`, `error`, `notice`, `warning`, `info`, `edit`, `wait`, `question`, `custom`). Each has its own accent color and an icon that draws itself in.
-- Seven entrance animations, or optional UIKit Dynamics (snaps in, falls out).
-- Buttons with roles, custom colors, target/selector, and a countdown shown on the button.
-- Text fields, text views, and custom UIKit or SwiftUI content.
-- Timeouts with a draining progress bar.
-- Change the title and message while the alert is showing.
-- Async button actions with a spinner, inline errors and a shake.
-- Validation that keeps buttons disabled until the input is valid.
-- A progress ring around the icon.
-- Swipe the card away to dismiss it.
-- An optional queue, so alerts appear one after another.
-- A Liquid Glass card on iOS 26+.
-- Keyboard avoidance, landscape, VoiceOver, Dynamic Type, Reduce Motion, light and dark mode.
+<p align="center">
+  Animated, accessible alerts for UIKit and SwiftUI. One line to show, a chain to customize.
+</p>
 
-Requires iOS 17 and Swift 6.
+```swift
+CoolAlert.success("Payment sent", "€42.00 is on its way to Alex.")
+```
 
-## Install
+<p align="center">
+  <img src="docs/images/styles.gif" alt="The nine alert styles" width="640">
+</p>
 
-Swift Package Manager: add this repository (or the local folder) and depend on the `CoolAlert` product.
+## Gallery
+
+| Success | Destructive | Async + validation | Progress |
+|:---:|:---:|:---:|:---:|
+| <img src="docs/images/success.jpg" width="200"> | <img src="docs/images/warning.jpg" width="200"> | <img src="docs/images/signin-error.jpg" width="200"> | <img src="docs/images/progress.jpg" width="200"> |
+| **Liquid Glass** | **Many buttons** | **SwiftUI content** | **Custom style** |
+| <img src="docs/images/glass.jpg" width="200"> | <img src="docs/images/buttons.jpg" width="200"> | <img src="docs/images/swiftui.jpg" width="200"> | <img src="docs/images/custom.jpg" width="200"> |
+| **Dark mode** | **Side-by-side buttons** | **Fields with icons** | |
+| <img src="docs/images/dark-error.jpg" width="200"> | <img src="docs/images/dark-question.jpg" width="200"> | <img src="docs/images/dark-form.jpg" width="200"> | |
+
+## Features
+
+- **Nine styles:** success, error, warning, info, notice, question, edit, wait, and custom. Each has its own color and an icon that draws itself in.
+- **Easy syntax:** one-liners for common cases, a chainable builder for everything else, and `async`/`await` when you need the answer.
+- **Buttons:** default, cancel and destructive roles, custom colors, target/selector, and a live countdown on the button.
+- **Async actions:** the button shows a spinner while the work runs. If it throws, the error appears inline and the alert shakes.
+- **Input:** text fields with leading icons, text views, validation that enables buttons, and return-key navigation.
+- **Your own content:** any `UIView` or SwiftUI view.
+- **Timeouts and progress:** auto-dismiss with a draining bar, and a progress ring with a percentage.
+- **Motion:** seven entrance animations, UIKit Dynamics, swipe to dismiss, and haptics.
+- **Liquid Glass** cards on iOS 26+, with a material fallback on earlier versions.
+- **Queueing:** show alerts one at a time instead of stacking them.
+- **Built for everyone:** VoiceOver, Dynamic Type, Reduce Motion, light and dark mode, and keyboard avoidance. Tall content scrolls in any orientation.
+
+## Installation
+
+**Swift Package Manager.** In Xcode, choose **File › Add Package Dependencies…** and enter:
+
+```
+https://github.com/Batchhh/CoolAlert.git
+```
+
+Or add it to `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/Batchhh/CoolAlert.git", branch: "main")
+],
+targets: [
+    .target(name: "MyApp", dependencies: ["CoolAlert"])
+]
+```
+
+Requires iOS 17+ and Xcode 26+ (Swift 6).
 
 ## Quick start
 
 ```swift
 import CoolAlert
 
-CoolAlert.success("Payment sent", "€42.00 is on its way to Alex.")
+CoolAlert.success("Saved")
 CoolAlert.error("Upload failed", "Check your connection.", closeButton: "Got it")
 CoolAlert.warning("Low storage", timeout: 3)
-CoolAlert.info / .notice / .edit / .question / .wait / .custom(…)
+CoolAlert.info("New in 2.0", "Swipe left on any message to snooze it.")
 ```
 
-For anything more, build the alert and call `show()`:
+For anything more, build the alert, then call `show()`:
 
 ```swift
 CoolAlert(.warning, "Delete 12 photos?", "They'll be removed from all your devices.")
@@ -44,7 +89,9 @@ CoolAlert(.warning, "Delete 12 photos?", "They'll be removed from all your devic
 
 You don't need to keep a reference: an alert stays alive while it's on screen.
 
-## Async / await
+## Usage
+
+### Waiting for the answer
 
 ```swift
 let result = await CoolAlert(.question, "Enable notifications?")
@@ -53,52 +100,34 @@ let result = await CoolAlert(.question, "Enable notifications?")
     .present()
 
 switch result {
-case .button(let index, let title): …   // index counts your buttons in order
-case .dismissed: …                      // close button, background tap, or close()
+case .button(let index, let title): …   // one of your buttons, by position
+case .dismissed: …                      // close button, background tap, swipe, or close()
 case .timeout: …
 }
 ```
 
 Cancelling the task closes the alert.
 
-## Updating a visible alert
+### Buttons
 
 ```swift
-let alert = CoolAlert.wait("Uploading…", "0 of 12")
-alert.message = "6 of 12"      // the visible alert updates
-alert.title = "Almost there"
-alert.close()
-```
-
-## Buttons
-
-```swift
-CoolAlert(.info, "Share")
-    .button("Messages") { … }                                    // filled with the accent color
-    .button("Mail", backgroundColor: .systemIndigo, textColor: .white) { … }
+CoolAlert(.info, "Share photo")
+    .button("Messages") { … }                                  // accent color
+    .button("Mail", backgroundColor: .systemIndigo) { … }
     .button("Report", role: .destructive) { … }
-    .button("Legacy", target: self, selector: #selector(legacyTapped))
-    .closeButton("Cancel")       // nil hides it; .hideCloseButton() also works
-    .appearance { $0.buttonsLayout = .horizontal }   // .vertical (default) / .automatic
+    .button("Legacy", target: self, selector: #selector(legacy))
+    .closeButton("Cancel")                                     // nil or .hideCloseButton() to hide it
+    .appearance { $0.buttonsLayout = .automatic }              // .vertical / .horizontal / .automatic
     .show()
 ```
 
-When there are other buttons, the close button gets the neutral `.cancel` look. Set `appearance.shouldAutoDismiss = false` to keep the alert open after a button runs its action.
-
-## Async actions and errors
-
-Give a button an async (and throwing) action. While it runs:
-
-- the button shows a spinner
-- the other buttons and the inputs are disabled
-- the timeout stops
-
-If the action throws, the alert stays open, shows the error's `localizedDescription` in red above the buttons, and shakes. Editing a field clears the error.
+### Async actions and validation
 
 ```swift
 let alert = CoolAlert(.edit, "Sign in")
-let email = alert.addTextField("Email")
-let password = alert.addTextField("Password")
+let email = alert.addTextField("Email", systemImage: "envelope")
+let password = alert.addTextField("Password", systemImage: "lock")
+password.isSecureTextEntry = true
 
 alert
     .validate { email.text?.contains("@") == true && !(password.text ?? "").isEmpty }
@@ -107,90 +136,64 @@ alert
     .show()
 ```
 
-`validate { }` runs as the user types and enables the action buttons only when it returns `true`. Cancel and close buttons stay enabled. Pressing return on the last field taps the first action button.
+While the action runs:
 
-You can also show an error yourself with `alert.showError("Wrong code")`, and hide it with `alert.showError(nil)`.
+- the button shows a spinner
+- the other buttons and the fields are disabled
+- the timeout stops
 
-## Progress
+If the action throws, the alert stays open, shows the error message in red and shakes. Editing a field clears the error. You can also show an error yourself with `alert.showError("Wrong code")`.
+
+### Text input
+
+```swift
+let name = alert.addTextField("Name", systemImage: "person")   // SF Symbol, or icon: UIImage
+let notes = alert.addTextView()
+
+CoolAlert(.edit, "Rename").textField("Name", text: file.name) { $0.clearButtonMode = .always }
+```
+
+Return moves to the next field. On the last field, it taps the first action button. The card stays clear of the keyboard.
+
+### Custom content
+
+```swift
+CoolAlert(.info, "Stay signed in?").customView(rememberMeRow).show()
+
+CoolAlert(.custom(color: .systemPink), "Rate your stay")
+    .icon(systemName: "heart.fill")
+    .customView { StarRating() }        // any SwiftUI view
+    .show()
+```
+
+### Updating a visible alert
 
 ```swift
 let alert = CoolAlert.wait("Downloading").progress(0)
-alert.progress = 0.42        // ring fills; .wait alerts show "42%" instead of the spinner
-alert.progress = nil         // hide the ring
+alert.progress = 0.42          // the ring fills; wait alerts show "42%"
+alert.message = "Almost there"
+alert.close()
 ```
 
-Any style can show the ring, e.g. `CoolAlert(.info, "Syncing").progress(0.65)`.
-
-## Timeouts
+### Timeouts
 
 ```swift
 CoolAlert(.notice, "Ad break")
-    .button("Skip", countdown: .seconds) { … }      // "Skip (5s)", "Skip (4s)", …
+    .button("Skip", countdown: .seconds) { … }     // "Skip (5s)", "Skip (4s)", …
     .hideCloseButton()
     .timeout(5) { print("timed out") }
-    .onTimeout { … }
     .onDismiss { … }
     .show()
 ```
 
-`Countdown(prefix:suffix:)` lets you choose the format.
+### Dismissing and queueing
 
-## Text input
+- **Swipe to dismiss:** the user can fling an alert away when it can already be dismissed without choosing an action. Turn it off with `appearance.swipeToDismiss = false`.
+- **Background tap:** set `appearance.hideWhenBackgroundViewIsTapped = true` to close the alert when the user taps outside it.
+- **Queueing:** with `CoolAlert.queuesAlerts = true`, alerts appear one at a time instead of stacking.
+- **Closing everything:** `CoolAlert.dismissAll()` closes every alert on screen and clears the queue.
 
-```swift
-let alert = CoolAlert(.edit, "Sign in")
-let email = alert.addTextField("Email")
-let password = alert.addTextField("Password")
-password.isSecureTextEntry = true
-let notes = alert.addTextView()
-
-alert.button("Sign in") { login(email.text, password.text) }
-    .appearance { $0.focusFirstField = true }
-    .show()
-
-// or inline:
-CoolAlert(.edit, "Rename").textField("Name", text: file.name) { $0.clearButtonMode = .always }
-```
-
-### Icons in text fields
-
-Pass an SF Symbol name with `systemImage`, or any `UIImage` with `icon`. The icon:
-
-- sits at the leading edge, sized to the field's font so it follows Dynamic Type
-- is gray, and takes the alert's accent color while its field is focused
-- pushes the text and placeholder to the right to make room
-
-Symbols and template images are tinted; other images keep their own colors.
-
-```swift
-let alert = CoolAlert(.edit, "Sign in")
-let email = alert.addTextField("Email", systemImage: "envelope")
-let password = alert.addTextField("Password", systemImage: "lock")
-
-CoolAlert(.edit, "Shipping")
-    .textField("Full name", systemImage: "person")
-    .textField("Company", icon: UIImage(named: "building"))
-```
-
-Return moves focus to the next field. The card moves up out of the keyboard's way.
-
-## Custom content
-
-```swift
-CoolAlert(.info, "Stay signed in?").customView(myUIView).show()
-
-CoolAlert(.custom(color: .systemPink), "Rate your stay")
-    .icon(systemName: "heart.fill")
-    .customView { StarRating() }          // any SwiftUI view
-    .show()
-```
-
-## Dismissing and queueing
-
-- The user can fling the card away in any direction. This only works when the alert can already be dismissed without choosing an action, i.e. it has a close button or `hideWhenBackgroundViewIsTapped` is on. Otherwise the card resists the drag. Turn it off with `appearance.swipeToDismiss = false`.
-- By default, alerts stack. Set `CoolAlert.queuesAlerts = true` and each `show()` waits until the alert on screen closes. `close()` removes a queued alert from the queue, and `CoolAlert.dismissAll()` clears the queue.
-
-## SwiftUI
+### SwiftUI
 
 ```swift
 .coolAlert(isPresented: $saved) {
@@ -202,7 +205,7 @@ CoolAlert(.custom(color: .systemPink), "Rate your stay")
 }
 ```
 
-## Look and feel
+## Customization
 
 ```swift
 // Every alert
@@ -215,18 +218,19 @@ CoolAlert.defaultAppearance = .init {
 // One alert
 CoolAlert(.success, "Level complete")
     .color(hex: 0x39D98A)
-    .buttonTextColor(.black)
     .icon(UIImage(named: "trophy"), tint: .white)
-    .animation(.bottomToTop)        // .topToBottom .leftToRight .rightToLeft .fade .zoom .noAnimation
+    .animation(.bottomToTop)   // .topToBottom .leftToRight .rightToLeft .fade .zoom .noAnimation
     .appearance {
-        $0.cardStyle = .glass           // Liquid Glass on iOS 26+, material blur before
+        $0.cardStyle = .glass
         $0.dynamicAnimatorActive = true
-        $0.backgroundBlur = true
     }
     .show()
 ```
 
-| Group | `Appearance` properties |
+<details>
+<summary><b>All <code>Appearance</code> properties</b></summary>
+
+| Group | Properties |
 |---|---|
 | Backdrop | `dimOpacity`, `backgroundBlur`, `hideWhenBackgroundViewIsTapped` |
 | Card | `cardStyle`, `windowWidth`, `contentViewColor`, `contentViewBorderColor`, `contentViewBorderWidth`, `contentViewCornerRadius`, `shadowOpacity`, `margin` |
@@ -238,47 +242,25 @@ CoolAlert(.success, "Level complete")
 
 `Margin` has `top`, `titleTop`, `titleToMessage`, `textViewBottom`, `buttonSpacing`, `textFieldSpacing`, `bottom` and `horizontal`.
 
-The default fonts follow Dynamic Type. With Reduce Motion on, every entrance becomes a fade and the shake is skipped.
+</details>
 
-## Layout
+## Accessibility
 
-When content doesn't fit, the alert gives up space in this order:
+- **VoiceOver:** each alert is announced when it appears, and VoiceOver focus stays inside it until it closes. Inline errors are announced too. The escape gesture closes alerts the user could otherwise dismiss.
+- **Dynamic Type:** the default fonts scale with the user's text size.
+- **Reduce Motion:** every entrance becomes a fade, and the shake is skipped.
 
-1. The body (title, message, custom view and fields) scrolls, and the buttons stay pinned to the bottom.
-2. If the body would get shorter than about 120 pt, the whole card scrolls instead. This happens in landscape with the keyboard up.
+## Demo app
 
-Either way, the focused field is kept above the keyboard.
+Open `Example/CoolAlertDemo.xcodeproj` and run it. Each row demonstrates one feature. Two launch arguments are useful for testing:
 
-## Coming from SCLAlertView
+- `-demo <id>` opens a demo at launch.
+- `-selftest YES` runs about 60 end-to-end checks, prints PASS/FAIL, and exits.
 
-| SCLAlertView | CoolAlert |
-|---|---|
-| `SCLAlertView().showSuccess("T", subTitle: "S")` | `CoolAlert.success("T", "S")` |
-| `showTitle(_:subTitle:style:closeButtonTitle:timeout:colorStyle:colorTextButton:circleIconImage:animationStyle:)` | `CoolAlert(style, "T", "S").closeButton(…).timeout(…).color(…).buttonTextColor(…).icon(…).animation(…).show()` |
-| `showCustom(_:subTitle:color:icon:)` | `CoolAlert.custom("T", "S", color:, icon:)` |
-| `SCLAlertViewResponder.setTitle` / `setSubTitle` / `close` | `alert.title = …` / `alert.message = …` / `alert.close()` |
-| `setDismissBlock` / `setTimeoutBlock` | `.onDismiss { }` / `.onTimeout { }` |
-| `addButton(_:backgroundColor:textColor:showTimeout:action:)` | `.button(_:backgroundColor:textColor:countdown:action:)` |
-| `addButton(_:target:selector:)` | `.button(_:target:selector:)` |
-| `SCLButton.ShowTimeoutConfiguration(prefix:suffix:)` | `CoolAlert.Countdown(prefix:suffix:)` |
-| `SCLTimeoutConfiguration(timeoutValue:timeoutAction:)` | `.timeout(seconds) { action }` |
-| `addTextField(_:)` / `addTextView()` | `addTextField(_:)` / `addTextView()` (same names) |
-| `customSubview` | `.customView(view)` or `.customView { SwiftUI }` |
-| `iconTintColor` | `.icon(image, tint:)` / `iconTintColor` |
-| `isShowing()` | `CoolAlert.isShowing`, `alert.isVisible` |
-| `hideView()` | `close()`, `CoolAlert.dismissAll()` |
-| `SCLAppearance(kTitleFont:, kTextFont:, kButtonFont:, kWindowWidth:, kTextHeight:, kTextFieldHeight:, kTextViewdHeight:, kButtonHeight:, kCircleHeight:, kCircleIconHeight:, kCircleTopPosition:, kDefaultShadowOpacity:, …)` | `Appearance` with `titleFont`, `messageFont`, `buttonFont`, `windowWidth`, `maxMessageHeight`, `textFieldHeight`, `textViewHeight`, `buttonHeight`, `circleSize`, `circleIconSize`, `circleTopPosition`, `dimOpacity`, … |
-| `SCLAnimationStyle` | `CoolAlert.AnimationStyle` (adds `.fade` and `.zoom`) |
-| `SCLAlertButtonLayout` | `CoolAlert.ButtonLayout` (adds `.automatic`) |
-| `window:` parameter | `show(in: windowScene)` |
+## Contributing
 
-The card sizes itself to its content, so `kWindowHeight` and `kTitleHeight` have no equivalent.
+Contributions are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, running the tests (`scripts/test.sh`), and the pull request process. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Demo
+## License
 
-Open `Example/CoolAlertDemo.xcodeproj` and run it. It has one row per feature. Two launch arguments help with testing:
-
-- `-demo <id>` opens a demo at launch (`success`, `asyncsignin`, `progress`, `glass`, `form`, …; see `Demos.swift`).
-  - Add `-autotap <title>` to tap a button once the alert is up.
-  - Add `-landscape YES` to rotate the app first.
-- `-selftest YES` runs about 50 end-to-end checks (button results, timeouts, async actions, validation, queueing, progress, overflow layout, memory release), prints PASS/FAIL, and exits.
+CoolAlert is available under the MIT license. See [LICENSE](LICENSE).

@@ -39,6 +39,10 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
     private var isSettled = false
     /// Set when a swipe flings the card away, so the exit animation continues that motion.
     private var fling: (translation: CGPoint, rotation: CGFloat, duration: TimeInterval)?
+    /// Keeps the body from collapsing when space runs out. Never more than the content's own height,
+    /// or it would stretch short alerts (see `viewDidLayoutSubviews`).
+    private var minimumBody: NSLayoutConstraint?
+    private let minimumBodyHeight: CGFloat = 120
 
     init(alert: CoolAlert, buttons: [ButtonItem]) {
         self.alert = alert
@@ -190,8 +194,9 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
         // only then does the whole card grow past the screen and scroll.
         let fitsScreen = content.heightAnchor.constraint(equalTo: frame.heightAnchor)
         fitsScreen.priority = .init(745)
-        let minimumBody = bodyScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 120)
+        let minimumBody = bodyScroll.heightAnchor.constraint(greaterThanOrEqualToConstant: 0)
         minimumBody.priority = .init(750)
+        self.minimumBody = minimumBody
         let top = wrapper.topAnchor.constraint(greaterThanOrEqualTo: content.topAnchor, constant: 12)
         containerTop = top
         // The body takes its content's height until space runs out; then it scrolls.
@@ -265,6 +270,8 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
         titleLabel.textAlignment = .center
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.accessibilityTraits = .header
+        titleLabel.setContentHuggingPriority(.required, for: .vertical)
+        errorLabel.setContentHuggingPriority(.required, for: .vertical)
         if appearance.titleMinimumScaleFactor < 1 {
             titleLabel.numberOfLines = 1
             titleLabel.adjustsFontSizeToFitWidth = true
@@ -281,7 +288,7 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
         messageScroll.addSubview(messageLabel)
         messageScroll.alwaysBounceVertical = false
         let fitsContent = messageScroll.frameLayoutGuide.heightAnchor.constraint(equalTo: messageScroll.contentLayoutGuide.heightAnchor)
-        fitsContent.priority = .defaultHigh
+        fitsContent.priority = .init(999)
         NSLayoutConstraint.activate([
             messageLabel.topAnchor.constraint(equalTo: messageScroll.contentLayoutGuide.topAnchor),
             messageLabel.leadingAnchor.constraint(equalTo: messageScroll.contentLayoutGuide.leadingAnchor),
@@ -500,6 +507,20 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
         progressLayer.path = line.cgPath
 
         messageScroll.isScrollEnabled = messageScroll.contentSize.height > messageScroll.bounds.height + 0.5
+
+        // The body's floor is the smaller of 120 pt and its natural height.
+        if let minimumBody, bodyStack.bounds.width > 0 {
+            let natural = bodyStack.systemLayoutSizeFitting(
+                CGSize(width: bodyStack.bounds.width, height: UIView.layoutFittingCompressedSize.height),
+                withHorizontalFittingPriority: .required,
+                verticalFittingPriority: .fittingSizeLevel
+            ).height
+            let floor = min(minimumBodyHeight, natural)
+            if abs(minimumBody.constant - floor) > 0.5 {
+                minimumBody.constant = floor
+                view.setNeedsLayout()
+            }
+        }
 
         // Keep the focused field in view as the keyboard squeezes the card.
         if let focused = alert.inputs.first(where: \.isFirstResponder) {
