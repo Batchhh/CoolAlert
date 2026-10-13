@@ -72,7 +72,3 @@ Keep each pull request to one change; small ones are reviewed faster. CI must pa
 ### Commit messages
 
 Use the imperative mood and keep the summary short, for example "Fix keyboard overlap in landscape". Explain the *why* in the body when it isn't obvious from the change.
-
-## Code of Conduct
-
-This project follows the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold it.

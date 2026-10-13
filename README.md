@@ -253,7 +253,7 @@ Open `Example/CoolAlertDemo.xcodeproj` and run it. Each row demonstrates one fea
 
 ## Contributing
 
-Contributions are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, running the tests (`scripts/test.sh`), and the pull request process. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, running the tests (`scripts/test.sh`), and the pull request process.
 
 ## License
 
