@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "CoolAlert",
-    platforms: [.iOS(.v17)],
+    platforms: [.iOS(.v13)],
     products: [
         .library(name: "CoolAlert", targets: ["CoolAlert"])
     ],

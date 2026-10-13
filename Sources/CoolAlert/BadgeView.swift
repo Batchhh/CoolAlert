@@ -131,12 +131,23 @@ final class BadgeView: UIView {
 
         installIcon()
         refreshColors()
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (badge: BadgeView, _: UITraitCollection) in
-            badge.refreshColors()
+        if #available(iOS 17.0, *) {
+            registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (badge: BadgeView, _: UITraitCollection) in
+                badge.refreshColors()
+            }
         }
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    /// iOS 13–16. Later systems use the registration in `init`.
+    @available(iOS, deprecated: 17.0)
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if #unavailable(iOS 17.0), traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            refreshColors()
+        }
+    }
 
     private func installIcon() {
         let size = appearance.circleIconSize
@@ -241,15 +252,7 @@ final class BadgeView: UIView {
         let size = appearance.circleSize * 0.27
         let base = UIFont.systemFont(ofSize: size, weight: .bold)
         let rounded = base.fontDescriptor.withDesign(.rounded).map { UIFont(descriptor: $0, size: size) } ?? base
-        label.font = UIFont(
-            descriptor: rounded.fontDescriptor.addingAttributes([
-                .featureSettings: [[
-                    UIFontDescriptor.FeatureKey.type: kNumberSpacingType,
-                    UIFontDescriptor.FeatureKey.selector: kMonospacedNumbersSelector,
-                ]]
-            ]),
-            size: size
-        )
+        label.font = rounded.withMonospacedDigits
         label.textColor = iconColor
         label.adjustsFontSizeToFitWidth = true
         label.translatesAutoresizingMaskIntoConstraints = false

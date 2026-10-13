@@ -12,7 +12,7 @@ For anything larger than a small fix, please open an issue first, so we can agre
 
 ## Setup
 
-You need Xcode 26 or later. The package targets iOS 17 and builds in Swift 6 language mode with strict concurrency.
+You need Xcode 26 or later. The package targets iOS 13 and builds in Swift 6 language mode with strict concurrency. Xcode builds it for iOS 15, the lowest target it accepts, so check the iOS 13 and 14 paths with `swiftc -typecheck -target arm64-apple-ios13.0 -sdk "$(xcrun --sdk iphoneos --show-sdk-path)" -swift-version 6 -module-name CoolAlert Sources/CoolAlert/*.swift`.
 
 ```bash
 git clone https://github.com/Batchhh/CoolAlert.git
@@ -55,7 +55,7 @@ When you add a feature, add a unit test for its logic. If it changes on-screen b
 - Match the surrounding code: naming, comment density, and the chainable `@discardableResult … -> Self` builder style for public options.
 - Every public API gets a `///` doc comment that says what it does, with an example when that helps.
 - Keep everything `@MainActor` and free of Swift 6 concurrency warnings. The build must stay warning-free.
-- Prefer Auto Layout and UIKit APIs available on iOS 17. Guard newer APIs with `if #available` and provide a fallback, the way `Glass.swift` does.
+- Prefer Auto Layout and UIKit APIs available on iOS 13. Guard newer APIs with `if #available` and provide a fallback, the way `Glass.swift` and `AlertButton.swift` do.
 - Respect accessibility: Dynamic Type for default fonts, VoiceOver labels and announcements, and Reduce Motion.
 - `.editorconfig` sets indentation: 4 spaces for Swift, 2 for YAML and Markdown.
 

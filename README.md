@@ -1,11 +1,9 @@
-<p align="center">
-  <img src="docs/images/banner.png" alt="CoolAlert: beautiful alerts for iOS" width="800">
-</p>
+<h1 align="center">CoolAlert</h1>
 
 <p align="center">
   <a href="https://github.com/Batchhh/CoolAlert/actions/workflows/ci.yml"><img src="https://github.com/Batchhh/CoolAlert/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white" alt="Swift 6">
-  <img src="https://img.shields.io/badge/iOS-17%2B-000000?logo=apple" alt="iOS 17+">
+  <img src="https://img.shields.io/badge/iOS-13%2B-000000?logo=apple" alt="iOS 13+">
   <img src="https://img.shields.io/badge/SPM-compatible-34C759" alt="Swift Package Manager">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
 </p>
@@ -55,7 +53,7 @@ targets: [
 ]
 ```
 
-Requires iOS 17+ and Xcode 26+ (Swift 6).
+Supports iOS 13+ and needs Swift 6 (Xcode 16 or later). Xcode 26 and later can only build for iOS 15+, so iOS 13 and 14 need an app built with Xcode 16. That build leaves out Liquid Glass, which needs the iOS 26 SDK.
 
 ## Quick start
 

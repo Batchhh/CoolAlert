@@ -68,7 +68,7 @@ struct CoolAlertTests {
         var ran = false
         let alert = CoolAlert(.edit, "Async")
             .button("Sync") { ran = true }
-            .button("Async") { try await Task.sleep(for: .milliseconds(1)) }
+            .button("Async") { try await Task.sleep(nanoseconds: 1_000_000) }
             .validate { true }
             .progress(1.5)
         #expect(alert.progress == 1)

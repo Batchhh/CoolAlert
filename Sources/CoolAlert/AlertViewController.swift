@@ -15,6 +15,9 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
     /// Last resort when even a shrunken card doesn't fit (landscape with the keyboard up): the whole card scrolls.
     private let container = UIScrollView()
     private var containerTop: NSLayoutConstraint?
+    /// Keeps the container above the keyboard on iOS 13–14, which have no `keyboardLayoutGuide`.
+    private var keyboardBottom: NSLayoutConstraint?
+    private var keyboardHeight: CGFloat = 0
     /// The button running an async action, kept in its accent color while it spins.
     private weak var busyButton: AlertButton?
     private var blurView: UIVisualEffectView?
@@ -73,8 +76,19 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
         refreshLayerColors()
         updateProgress(animated: false)
         revalidate()
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (controller: AlertViewController, _: UITraitCollection) in
-            controller.refreshLayerColors()
+        if #available(iOS 17.0, *) {
+            registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (controller: AlertViewController, _: UITraitCollection) in
+                controller.refreshLayerColors()
+            }
+        }
+    }
+
+    /// iOS 13–16. Later systems use the registration in `viewDidLoad`.
+    @available(iOS, deprecated: 17.0)
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if #unavailable(iOS 17.0), traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            refreshLayerColors()
         }
     }
 
@@ -104,11 +118,21 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
         container.showsHorizontalScrollIndicator = false
         container.delaysContentTouches = false
         view.addSubview(container)
+        let bottom: NSLayoutConstraint
+        if #available(iOS 15.0, *) {
+            bottom = container.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor)
+        } else {
+            bottom = container.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            keyboardBottom = bottom
+            NotificationCenter.default.addObserver(
+                self, selector: #selector(keyboardWillChangeFrame), name: UIResponder.keyboardWillChangeFrameNotification, object: nil
+            )
+        }
         NSLayoutConstraint.activate([
             container.topAnchor.constraint(equalTo: view.topAnchor),
             container.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             container.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            container.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
+            bottom,
         ])
         container.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(backdropTapped)))
     }
@@ -311,7 +335,7 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
             if let field = input as? UITextField {
                 field.delegate = self
                 field.returnKeyType = index == alert.inputs.count - 1 ? .done : .next
-                field.addAction(UIAction { [weak self] _ in self?.inputChanged() }, for: .editingChanged)
+                field.addTarget(self, action: #selector(inputChanged), for: .editingChanged)
             } else if let textView = input as? UITextView {
                 NotificationCenter.default.addObserver(self, selector: #selector(inputChanged), name: UITextView.textDidChangeNotification, object: textView)
             }
@@ -361,11 +385,12 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
             foreground = item.textColor ?? .white
         }
         let button = AlertButton(item: item, appearance: appearance, background: background, foreground: foreground)
-        button.addAction(UIAction { [weak self, weak button] _ in
-            guard let self, let button else { return }
-            self.alert.handleTap(on: button.item, sender: button)
-        }, for: .primaryActionTriggered)
+        button.addTarget(self, action: #selector(buttonTapped), for: AlertButton.tapEvent)
         return button
+    }
+
+    @objc private func buttonTapped(_ button: AlertButton) {
+        alert.handleTap(on: button.item, sender: button)
     }
 
     private func buildBadge() {
@@ -489,6 +514,26 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
     override func viewSafeAreaInsetsDidChange() {
         super.viewSafeAreaInsetsDidChange()
         containerTop?.constant = view.safeAreaInsets.top + 12
+        updateKeyboardBottom()
+    }
+
+    @objc private func keyboardWillChangeFrame(_ notification: Notification) {
+        guard let info = notification.userInfo,
+              let end = (info[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
+              let screen = view.window?.screen else { return }
+        let frame = view.convert(end, from: screen.coordinateSpace)
+        keyboardHeight = max(0, view.bounds.maxY - frame.minY)
+        updateKeyboardBottom()
+        let duration = info[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval ?? 0.25
+        let curve = info[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt ?? UInt(UIView.AnimationCurve.easeInOut.rawValue)
+        UIView.animate(withDuration: duration, delay: 0, options: UIView.AnimationOptions(rawValue: curve << 16)) {
+            self.view.layoutIfNeeded()
+        }
+    }
+
+    /// Like `keyboardLayoutGuide`, which rests on the bottom safe area while the keyboard is down.
+    private func updateKeyboardBottom() {
+        keyboardBottom?.constant = -max(keyboardHeight, view.safeAreaInsets.bottom)
     }
 
     override func viewDidLayoutSubviews() {
@@ -559,7 +604,7 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
         }
         // Return on the last field submits the first action button, like the system alert does.
         if let primary = buttonViews.first(where: { $0.item.role == .default && !$0.item.isCloseButton }), primary.isEnabled {
-            primary.sendActions(for: .primaryActionTriggered)
+            primary.sendActions(for: AlertButton.tapEvent)
         } else {
             textField.resignFirstResponder()
         }
@@ -690,11 +735,11 @@ final class AlertViewController: UIViewController, UITextFieldDelegate, UIDynami
         }
 
         Task {
-            try? await Task.sleep(for: .seconds(iconDelay))
+            try? await Task.sleep(seconds: iconDelay)
             badge?.playEntrance()
             UIAccessibility.post(notification: .screenChanged, argument: wrapper)
             if appearance.focusFirstField { alert.inputs.first?.becomeFirstResponder() }
-            try? await Task.sleep(for: .seconds(style == .noAnimation ? 0 : 0.35))
+            try? await Task.sleep(seconds: style == .noAnimation ? 0 : 0.35)
             if dynamics == nil { isSettled = true }
         }
     }

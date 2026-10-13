@@ -17,6 +17,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - SwiftUI `.coolAlert(isPresented:)` and `.coolAlert(item:)` modifiers.
 - Accessibility: VoiceOver, Dynamic Type, Reduce Motion, and light and dark mode.
 - Keyboard avoidance, and scrolling for tall content in any orientation.
+- Support for iOS 13 and later, with fallbacks for newer UIKit and SwiftUI APIs.
 
 ### Fixed
 

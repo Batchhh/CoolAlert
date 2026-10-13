@@ -430,7 +430,7 @@ public final class CoolAlert {
             return self
         }
 
-        previousKeyWindow = scene.keyWindow
+        previousKeyWindow = scene.windows.first { $0.isKeyWindow }
         let controller = AlertViewController(alert: self, buttons: allButtons)
         controller.inheritedOrientations = previousKeyWindow?.rootViewController?.supportedInterfaceOrientations
 
@@ -548,20 +548,20 @@ public final class CoolAlert {
 
     private func startTimeout() {
         guard let timeout, timeout.seconds > 0 else { return }
-        let deadline = ContinuousClock.now + .seconds(timeout.seconds)
+        let deadline = monotonicNow() + timeout.seconds
         remainingTime = timeout.seconds
         controller?.timeoutStarted(duration: timeout.seconds)
         controller?.updateCountdown(Int(timeout.seconds.rounded(.up)))
 
         timeoutTask = Task { [weak self] in
             while true {
-                let left = Self.seconds(deadline - ContinuousClock.now)
+                let left = deadline - monotonicNow()
                 if left <= 0 { break }
                 // Wake on whole seconds so the countdown ticks evenly.
                 let step = left - (left.rounded(.up) - 1)
-                try? await Task.sleep(for: .seconds(step))
+                try? await Task.sleep(seconds: step)
                 guard let self, !Task.isCancelled else { return }
-                let remaining = max(0, Self.seconds(deadline - ContinuousClock.now))
+                let remaining = max(0, deadline - monotonicNow())
                 self.remainingTime = remaining
                 self.controller?.updateCountdown(Int(remaining.rounded(.up)))
             }
@@ -570,11 +570,6 @@ public final class CoolAlert {
             self.timeoutHandlers.forEach { $0() }
             self.finish(.timeout)
         }
-    }
-
-    private static func seconds(_ duration: Duration) -> TimeInterval {
-        let parts = duration.components
-        return TimeInterval(parts.seconds) + TimeInterval(parts.attoseconds) / 1e18
     }
 
     private func stopTimeout() {

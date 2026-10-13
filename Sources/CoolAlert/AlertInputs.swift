@@ -31,7 +31,7 @@ extension AlertInput {
 }
 
 final class AlertTextField: UITextField, AlertInput {
-    var accentColor: UIColor = .tintColor
+    var accentColor: UIColor = .systemBlue
 
     /// Shown at the leading edge. Symbols and template images take the field's tint.
     var icon: UIImage? {
@@ -49,8 +49,19 @@ final class AlertTextField: UITextField, AlertInput {
         iconView.contentMode = .scaleAspectFit
         iconView.tintColor = .secondaryLabel
         iconView.isAccessibilityElement = false
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (field: AlertTextField, _: UITraitCollection) in
-            field.updateBorder(focused: field.isFirstResponder, animated: false)
+        if #available(iOS 17.0, *) {
+            registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (field: AlertTextField, _: UITraitCollection) in
+                field.updateBorder(focused: field.isFirstResponder, animated: false)
+            }
+        }
+    }
+
+    /// iOS 13–16. Later systems use the registration in `init`.
+    @available(iOS, deprecated: 17.0)
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if #unavailable(iOS 17.0), traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateBorder(focused: isFirstResponder, animated: false)
         }
     }
 
@@ -134,13 +145,24 @@ final class AlertTextField: UITextField, AlertInput {
 }
 
 final class AlertTextView: UITextView, AlertInput {
-    var accentColor: UIColor = .tintColor
+    var accentColor: UIColor = .systemBlue
 
     override init(frame: CGRect, textContainer: NSTextContainer?) {
         super.init(frame: frame, textContainer: textContainer)
         textContainerInset = UIEdgeInsets(top: 12, left: 10, bottom: 12, right: 10)
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (view: AlertTextView, _: UITraitCollection) in
-            view.updateBorder(focused: view.isFirstResponder, animated: false)
+        if #available(iOS 17.0, *) {
+            registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (view: AlertTextView, _: UITraitCollection) in
+                view.updateBorder(focused: view.isFirstResponder, animated: false)
+            }
+        }
+    }
+
+    /// iOS 13–16. Later systems use the registration in `init`.
+    @available(iOS, deprecated: 17.0)
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        if #unavailable(iOS 17.0), traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateBorder(focused: isFirstResponder, animated: false)
         }
     }
 
