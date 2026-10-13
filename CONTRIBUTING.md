@@ -48,7 +48,7 @@ This runs the same checks as CI:
 
 The script picks an iPhone simulator, or creates one called "CoolAlert Tests". To choose one yourself, set `SIMULATOR_UDID`.
 
-When you add a feature, add a unit test for its logic. If it changes on-screen behavior, also add a check to `Example/CoolAlertDemo/SelfTest.swift`. For visual changes, add a row to `Demos.swift` so reviewers can try it. You can open any demo at launch with `-demo <id>`.
+When you add a feature, add a unit test for its logic. If it changes on-screen behavior, also add a check to `Example/CoolAlertDemo/SelfTest.swift`. For visual changes, add a row to `Demos.swift` so reviewers can try it. You can open any demo at launch with `-demo <id>`. To export an alert as a transparent PNG (this is how the README image is made), add `-snapshot <file.png>`. The file is saved to the app's Documents folder.
 
 ## Code style
 

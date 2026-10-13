@@ -58,6 +58,10 @@ struct ContentView: View {
                     try? await Task.sleep(for: .seconds(1))
                     SelfTest.tap(title)
                 }
+                if let name = defaults.string(forKey: "snapshot") {
+                    try? await Task.sleep(for: .seconds(1.8))
+                    Snapshot.capture(named: name)
+                }
             }
         }
     }
