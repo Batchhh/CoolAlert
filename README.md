@@ -19,7 +19,7 @@ CoolAlert.success("Payment sent", "€42.00 is on its way to Alex.")
 ```
 
 <p align="center">
-  <img src="docs/images/signin-error.jpg" alt="A sign-in alert with field icons, validation and an inline error" width="300">
+  <img src="docs/images/success.jpg" alt="A success alert: Payment sent" width="300">
 </p>
 
 ## Features
